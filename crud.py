@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 
 def get_posts(db: Session, limit: int = 10):
@@ -23,7 +23,9 @@ def create_post(db: Session, post: schemas.Post):
 def update_post(db: Session, post: schemas.Post, id: int):
     existing_post = db.query(models.Post).filter(models.Post.id == id).first()
     if not existing_post:
-        raise HTTPException(status_code=404, detail="Post not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
     existing_post.title = post.title
     existing_post.content = post.content
     existing_post.author = post.author
@@ -35,6 +37,8 @@ def update_post(db: Session, post: schemas.Post, id: int):
 def delete_post(db: Session, id: int):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
-        return HTTPException(status_code=404, detail="Post not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
     db.delete(post)
     db.commit()
