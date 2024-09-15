@@ -1,10 +1,12 @@
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
 import os
-from .utility import verify_password
-from .crud import get_user_by_username
-from .models import User
+from datetime import datetime, timedelta
+
+from jose import jwt
 from sqlalchemy.orm import Session
+
+from app.crud.user import get_user_by_username
+from app.models.user import User
+from app.utils.hashing import verify_password
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
