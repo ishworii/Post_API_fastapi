@@ -134,8 +134,7 @@ Login to get an access token.
   {
     "access_token": "your_token",
     "token_type": "bearer",
-    "expires_in" : "30 minutes"
-    "
+    "expires_in": "30 minutes"
   }
   ```
 
@@ -154,9 +153,9 @@ Get details of the current logged-in user. Requires an authentication token.
   {
     "username": "your_username",
     "id": 1,
-    "email" : "your email",
-    "full_name" : "your full name",
-    "posts" = []
+    "email": "your email",
+    "full_name": "your full name",
+    "posts": []
   }
   ```
 
