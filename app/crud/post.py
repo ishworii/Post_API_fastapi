@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.post import Post
-from app.schemas.post import PostCreate, PostRead
+from app.schemas.post import PostCreate
 
 
 def get_posts(db: Session, limit: int = 10):
@@ -27,7 +27,7 @@ def create_post(db: Session, post: PostCreate, user_id: int):
     return new_post
 
 
-def update_post(db: Session, post: PostRead, id: int):
+def update_post(db: Session, post: PostCreate, id: int, author_id: int):
     existing_post = db.query(Post).filter(Post.id == id).first()
     if not existing_post:
         raise HTTPException(
@@ -35,7 +35,7 @@ def update_post(db: Session, post: PostRead, id: int):
         )
     existing_post.title = post.title
     existing_post.content = post.content
-    existing_post.author = post.author
+    existing_post.author_id = author_id
     db.commit()
     db.refresh(existing_post)
     return existing_post

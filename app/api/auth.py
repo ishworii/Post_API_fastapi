@@ -1,15 +1,17 @@
-from fastapi import Depends, HTTPException,APIRouter
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
 import os
-from app.api.deps import get_db
-from app.core.security import authenticate_user,create_access_token
+from datetime import timedelta
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_db
+from app.core.security import authenticate_user, create_access_token
 
 router = APIRouter()
 
-@router.post("/login")
+
+@router.post("/user/login")
 def login(
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ):
@@ -20,4 +22,8 @@ def login(
         data={"sub": user.username},
         expires_delta=timedelta(int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))),
     )
-    return {"access_token":access_token,"token_type":"bearer","expires_in" : f"{os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")} minutes"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": f"{os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")} minutes",
+    }

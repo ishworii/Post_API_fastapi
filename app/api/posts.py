@@ -31,10 +31,19 @@ def create_post(
 
 
 @router.put("/{id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
-def update_post(id: int, post_read: PostRead, db: Session = Depends(get_db)):
-    return post.update_post(db, post_read, id)
+def update_post(
+    id: int,
+    post_read: PostCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return post.update_post(db, post_read, id, current_user.id)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     post.delete_post(db, id)
