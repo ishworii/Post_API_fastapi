@@ -12,6 +12,8 @@ class PostCreate(PostBase):
 
 class PostRead(PostBase):
     id: int
+    like_count: int | None = 0
+    dislike_count: int | None = 0
 
     class Config:
         orm_mode = True

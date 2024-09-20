@@ -15,6 +15,7 @@ def get_post(db: Session, id: int):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id:{id} not found"
         )
+
     return post
 
 
