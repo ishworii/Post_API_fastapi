@@ -53,7 +53,7 @@ def delete_post(
 
 # like/dislike a post
 @router.post("/{id}/{action}", status_code=status.HTTP_201_CREATED)
-def like_post(
+def like_dislike_post(
     id: int,
     action: LikeAction,
     db: Session = Depends(get_db),

@@ -1,8 +1,9 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from app.utils.hashing import hash_password
+from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.schemas.user import UserCreate
+from app.utils.hashing import hash_password
 
 
 def get_users(db: Session, limit: int = 10):
