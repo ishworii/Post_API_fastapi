@@ -1,12 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.core.security import verify_jwt_token
 from app.crud import comment as crud_comment
 from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentRead
+from app.websockets import ConnectionManager
 
 router = APIRouter()
+manager = ConnectionManager()
 
 
 @router.post(
@@ -14,15 +24,20 @@ router = APIRouter()
     response_model=CommentRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_comment(
+async def create_comment(
     post_id: int,
     comment: CommentCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return crud_comment.create_comment(
+    new_comment = crud_comment.create_comment(
         db, comment=comment, post_id=post_id, user_id=current_user.id
     )
+    await manager.broadcast(
+        f"New comment by {current_user.username}: {new_comment.content}"
+    )
+
+    return new_comment
 
 
 @router.get("/posts/{post_id}/comments", response_model=list[CommentRead])
@@ -82,3 +97,19 @@ def delete_comment(
             status_code=403, detail="Not authorized to delete this comment"
         )
     crud_comment.delete_comment(db, comment_id=comment_id)
+
+
+@router.websocket("/ws/comments")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    try:
+        user = verify_jwt_token(token)
+    except Exception as e:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)

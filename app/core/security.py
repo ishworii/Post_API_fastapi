@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
+from fastapi import HTTPException, status
 from jose import jwt
 from sqlalchemy.orm import Session
 
@@ -23,3 +24,21 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
     if user and verify_password(password, user.hashed_password):
         return user
     return None
+
+
+def verify_jwt_token(token: str):
+    try:
+        payload = jwt.decode(
+            token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")]
+        )
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+            )
+        return username
+    except jwt.PyJWTError as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
