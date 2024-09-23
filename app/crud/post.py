@@ -19,6 +19,10 @@ def get_post(db: Session, id: int):
     return post
 
 
+def get_posts_by_user(db: Session, user_id: int):
+    return db.query(Post).filter(Post.author_id == user_id).all()
+
+
 def create_post(db: Session, post: PostCreate, user_id: int):
     new_post = Post(**post.model_dump(), author_id=user_id)
     print(new_post)

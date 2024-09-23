@@ -6,12 +6,17 @@ from app.schemas.user import UserCreate
 from app.utils.hashing import hash_password
 
 
-def get_users(db: Session, limit: int = 10):
-    return db.query(User).limit(limit).all()
+def get_users(db: Session):
+    return db.query(User).all()
 
 
 def get_user_by_username(db: Session, username: int) -> User | None:
     user = db.query(User).filter(User.username == username).first()
+    return user
+
+
+def get_user_by_id(db: Session, user_id: int) -> User | None:
+    user = db.query(User).filter(User.id == user_id).first()
     return user
 
 
