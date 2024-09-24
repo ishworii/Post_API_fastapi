@@ -1,6 +1,19 @@
+Here’s an updated README that includes **like**, **comment**, **user endpoints**, and **notification via WebSocket** features:
+
+---
+
 # FastAPI Blog API
 
 This is a **FastAPI**-based RESTful API for managing posts and users with JWT-based authentication. The API allows users to create, read, update, and delete posts, and provides authentication through token-based login. Users need a valid token to access protected routes.
+
+## TODO
+- **Add query params to filter query by author, title, search string, or something else**
+- **Add role-based user (normal/admin)**
+- **Add functionality so that user can subscribe to a post**
+- **Only receive notifications if user is an author, has commented, or has subscribed to a post.**
+
+## DISCLAIMER
+### Alembic migrations currently not functional, will fix later.
 
 ## Features
 
@@ -9,6 +22,9 @@ This is a **FastAPI**-based RESTful API for managing posts and users with JWT-ba
 - **User Management**: User sign-up, login, and access control for creating/updating/deleting posts.
 - **Post Management**: Get all posts, get a single post, create, update, and delete posts.
 - **Token Expiry**: Tokens expire after 30 minutes by default, ensuring enhanced security.
+- **Like/Dislike**: Authenticated users can like and dislike posts.
+- **Commenting**: Authenticated users can comment on posts.
+- **WebSocket for Notifications**: Authenticated users receive real-time notifications for new comments (see #TODO for planned enhancements).
 
 ## Prerequisites
 
@@ -16,7 +32,7 @@ This is a **FastAPI**-based RESTful API for managing posts and users with JWT-ba
 - **FastAPI**
 - **SQLAlchemy**
 - **Alembic**
-- **PostgreSQL** or any SQL database
+- **PostgreSQL** (or any SQL database)
 - **JWT (Json Web Token)** for authentication
 - **Docker** (optional, for deployment)
 
@@ -26,7 +42,7 @@ This is a **FastAPI**-based RESTful API for managing posts and users with JWT-ba
 project-root/
 ├── alembic/                 # Alembic migrations
 ├── app/
-│   ├── api/                 # API routes (users, posts, auth)
+│   ├── api/                 # API routes (users, posts, comments, auth)
 │   ├── core/                # Config, security, and middleware
 │   ├── crud/                # CRUD operations
 │   ├── db/                  # Database initialization
@@ -75,6 +91,7 @@ Replace `your_secret_key` and `SQLALCHEMY_DATABASE_URL` with your actual values.
 ### 5. Initialize the Database
 
 Run Alembic migrations to set up the database schema.
+### Needs to be fixed!!!
 
 ```bash
 alembic upgrade head
@@ -82,10 +99,10 @@ alembic upgrade head
 
 ### 6. Run the Application
 
-Start the FastAPI server to run in a development environment
+Start the FastAPI server to run in a development environment:
 
 ```bash
-fastapi dev app/main.py
+uvicorn app.main:app --reload
 ```
 
 The API will be available at `http://127.0.0.1:8000`.
@@ -94,7 +111,7 @@ The API will be available at `http://127.0.0.1:8000`.
 
 ### Authentication
 
-#### **POST** `/user/register`
+#### **POST** `/users/register`
 
 Create a new user.
 
@@ -113,16 +130,15 @@ Create a new user.
     "username": "USERNAME",
     "email": "EMAIL",
     "full_name": "FULL NAME",
-    "id": "ID",
-    "posts": []
+    "id": "ID"
   }
   ```
 
-#### **POST** `/user/login`
+#### **POST** `/users/login`
 
 Login to get an access token.
 
-- **Request Body (form-data)**:
+- **Request Body (x-www-form-urlencoded)**:
   ```json
   {
     "username": "your_username",
@@ -154,45 +170,110 @@ Get details of the current logged-in user. Requires an authentication token.
     "username": "your_username",
     "id": 1,
     "email": "your email",
-    "full_name": "your full name",
-    "posts": []
+    "full_name": "your full name"
   }
   ```
 
-### Posts
+#### **GET** `/users/{id}`
 
-#### **GET** `/posts`
+Get user details by ID. Requires an authentication token.
 
-Get all posts.
+- **Authorization Header**:
+  
+  ```
+  Authorization: Bearer your_token
+  ```
+
+- **Response**:
+  ```json
+  {
+    "username": "your_username",
+    "email": "your_email",
+    "full_name": "your_full_name",
+    "id": 1
+  }
+  ```
+
+#### **GET** `/users/{id}/posts`
+
+Get all posts by a specific user.
+
+- **Authorization Header**:
+  
+  ```
+  Authorization: Bearer your_token
+  ```
 
 - **Response**:
   ```json
   [
-      {
-          "id": 1,
-          "title": "First Post",
-          "content": "This is the content of the first post",
-      },
-      ...
+    {
+      "title": "Post Title",
+      "content": "Post Content",
+      "id": 1,
+      "author_id": 1,
+      "like_count": 0,
+      "dislike_count": 0
+    }
   ]
   ```
 
-#### **POST** `/posts`
+### Likes/Dislikes
 
-Create a new post. Requires an authentication token.
+#### **POST** `/posts/{id}/like`
+
+Like a post.
 
 - **Authorization Header**:
+  
+  ```
+  Authorization: Bearer your_token
+  ```
 
+- **Response**:
+  ```json
+  {
+    "is_like": true,
+    "like_count": 1,
+    "dislike_count": 0
+  }
+  ```
+
+#### **POST** `/posts/{id}/dislike`
+
+Dislike a post.
+
+- **Authorization Header**:
+  
+  ```
+  Authorization: Bearer your_token
+  ```
+
+- **Response**:
+  ```json
+  {
+    "is_like": false,
+    "like_count": 0,
+    "dislike_count": 1
+  }
+  ```
+
+### Comments
+
+#### **POST** `/posts/{id}/comments`
+
+Add a comment to a post.
+
+- **Authorization Header**:
+  
   ```
   Authorization: Bearer your_token
   ```
 
 - **Request Body**:
-
   ```json
   {
-    "title": "New Post",
-    "content": "This is the content of the new post"
+    "content": "This is a comment"
   }
   ```
 
@@ -200,61 +281,78 @@ Create a new post. Requires an authentication token.
   ```json
   {
     "id": 1,
-    "title": "New Post",
-    "content": "This is the content of the new post"
+    "content": "This is a comment",
+    "post_id": 1,
+    "user_id": 1
   }
   ```
 
-#### **GET** `/posts/{id}`
+#### **GET** `/comments/{id}`
 
-Get a single post by ID.
-
-- **Response**:
-  ```json
-  {
-    "id": 1,
-    "title": "First Post",
-    "content": "This is the content of the first post"
-  }
-  ```
-
-#### **PUT** `/posts/{id}`
-
-Update a post by ID. Requires an authentication token.
+Get a specific comment by ID.
 
 - **Authorization Header**:
-
+  
   ```
   Authorization: Bearer your_token
   ```
 
-- **Request Body**:
-
-  ```json
-  {
-    "title": "Updated Post",
-    "content": "This is the updated content"
-  }
-  ```
-
 - **Response**:
   ```json
   {
     "id": 1,
-    "title": "Updated Post",
-    "content": "This is the updated content"
+    "content": "This is a comment",
+    "post_id": 1,
+    "user_id": 1
   }
   ```
 
-#### **DELETE** `/posts/{id}`
+#### **GET** `/posts/{id}/comments`
 
-Delete a post by ID. Requires an authentication token.
+Get all comments for a specific post.
 
-- **Authorization Header**:
-
+- **Response**:
+  ```json
+  [
+    {
+      "id": 1,
+      "content": "This is a comment",
+      "post_id": 1,
+      "user_id": 1
+    }
+  ]
   ```
-  Authorization: Bearer your_token
+
+#### **GET** `/users/{id}/comments`
+
+Get all comments by a specific user.
+
+- **Response**:
+  ```json
+  [
+    {
+      "id": 1,
+      "content": "This is a comment",
+      "post_id": 1,
+      "user_id": 1
+    }
+  ]
   ```
+
+### WebSocket Notifications
+
+Authenticated users can subscribe to real-time notifications for new comments on posts they are either the author of, have commented on, or have subscribed to.
+
+#### **WebSocket** `/ws/notifications`
+
+- Connect to `/ws/notifications` via WebSocket.
+- The server will push real-time notifications for new comments on relevant posts.
+- Notifications will be sent if the user:
+  - Is the author of the post.
+  - Has commented on the post.
+  - Has subscribed to the post.
+
+---
 
 ## Security
 
@@ -264,3 +362,9 @@ Delete a post by ID. Requires an authentication token.
 ## Contributing
 
 Feel free to submit issues or pull requests for improvements and bug fixes!
+
+---
+
+This updated README includes details about the **like**, **dislike**, **comment**, and **WebSocket notification** features. Let me know if you need any further
+
+ changes!
