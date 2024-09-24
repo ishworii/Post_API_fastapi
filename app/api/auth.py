@@ -11,7 +11,7 @@ from app.core.security import authenticate_user, create_access_token
 router = APIRouter()
 
 
-@router.post("/user/login")
+@router.post("/users/login")
 def login(
     db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ):
