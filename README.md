@@ -362,9 +362,3 @@ Authenticated users can subscribe to real-time notifications for new comments on
 ## Contributing
 
 Feel free to submit issues or pull requests for improvements and bug fixes!
-
----
-
-This updated README includes details about the **like**, **dislike**, **comment**, and **WebSocket notification** features. Let me know if you need any further
-
- changes!
