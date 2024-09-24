@@ -102,7 +102,7 @@ alembic upgrade head
 Start the FastAPI server to run in a development environment:
 
 ```bash
-uvicorn app.main:app --reload
+fastapi dev app/main.py
 ```
 
 The API will be available at `http://127.0.0.1:8000`.
