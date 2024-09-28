@@ -1,7 +1,3 @@
-Here’s an updated README that includes **like**, **comment**, **user endpoints**, and **notification via WebSocket** features:
-
----
-
 # FastAPI Blog API
 
 This is a **FastAPI**-based RESTful API for managing posts and users with JWT-based authentication. The API allows users to create, read, update, and delete posts, and provides authentication through token-based login. Users need a valid token to access protected routes.
@@ -10,7 +6,7 @@ This is a **FastAPI**-based RESTful API for managing posts and users with JWT-ba
 - **Add query params to filter query by author, title, search string, or something else**
 - **Add role-based user (normal/admin)**
 - **Add functionality so that user can subscribe to a post**
-- ** ~~Only receive notifications if user is an author, has commented~~, or has subscribed to a post.**
+- **~~Only receive notifications if user is an author, has commented~~, or has subscribed to a post.**
 
 ## DISCLAIMER
 ### Alembic migrations currently not functional, will fix later.
