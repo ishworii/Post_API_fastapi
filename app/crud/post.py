@@ -5,22 +5,13 @@ from app.models.post import Post
 from app.schemas.post import PostCreate
 
 
-def get_posts(db: Session, limit: int = 10):
-    return db.query(Post).limit(limit).all()
-
-
-def get_post(db: Session, id: int):
-    post = db.query(Post).filter(Post.id == id).first()
+def get_post(db: Session, post_id: int):
+    post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id:{id} not found"
         )
-
     return post
-
-
-def get_posts_by_user(db: Session, user_id: int):
-    return db.query(Post).filter(Post.author_id == user_id).all()
 
 
 def create_post(db: Session, post: PostCreate, user_id: int):
