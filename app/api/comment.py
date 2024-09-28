@@ -102,14 +102,15 @@ def delete_comment(
 @router.websocket("/ws/comments")
 async def websocket_endpoint(websocket: WebSocket, token: str):
     try:
-        user = verify_jwt_token(token)
+        username = verify_jwt_token(token)
     except Exception as e:
+        print(e)
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await manager.connect(websocket)
+    await manager.connect(websocket,username)
     try:
         while True:
             data = await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        manager.disconnect(websocket,username)

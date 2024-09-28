@@ -43,3 +43,6 @@ def delete_comment(db: Session, comment_id: int):
         raise HTTPException(status_code=404, detail="Comment not found")
     db.delete(db_comment)
     db.commit()
+
+def get_commenters_for_post(db: Session, post_id: int):
+    return db.query(Comment).filter(Comment.post_id == post_id).all()
