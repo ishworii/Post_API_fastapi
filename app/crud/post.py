@@ -23,8 +23,8 @@ def create_post(db: Session, post: PostCreate, user_id: int):
     return new_post
 
 
-def update_post(db: Session, post: PostCreate, id: int, author_id: int):
-    existing_post = db.query(Post).filter(Post.id == id).first()
+def update_post(db: Session, post: PostCreate, post_id: int, author_id: int):
+    existing_post = db.query(Post).filter(Post.id == post_id).first()
     if not existing_post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
@@ -37,8 +37,8 @@ def update_post(db: Session, post: PostCreate, id: int, author_id: int):
     return existing_post
 
 
-def delete_post(db: Session, id: int):
-    post = db.query(Post).filter(Post.id == id).first()
+def delete_post(db: Session, post_id: int):
+    post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"

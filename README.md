@@ -1,14 +1,20 @@
 # FastAPI Blog API
 
-This is a **FastAPI**-based RESTful API for managing posts and users with JWT-based authentication. The API allows users to create, read, update, and delete posts, and provides authentication through token-based login. Users need a valid token to access protected routes.
+This is a **FastAPI**-based RESTful API for managing posts and users with JWT-based authentication. The API allows users
+to create, read, update, and delete posts, and provides authentication through token-based login. Users need a valid
+token to access protected routes.
 
 ## TODO
-- **Add query params to filter query by author, title, search string, or something else**
+
+- **~~Add query params to filter query by author, title, search string, or something else~~**
 - **Add role-based user (normal/admin)**
+    - **Admin can delete any post,comment**
+    - **Normal users can only delete or update their post,comment,and user details**
 - **Add functionality so that user can subscribe to a post**
 - **~~Only receive notifications if user is an author, has commented~~, or has subscribed to a post.**
 
 ## DISCLAIMER
+
 ### Alembic migrations currently not functional, will fix later.
 
 ## Features
@@ -20,7 +26,7 @@ This is a **FastAPI**-based RESTful API for managing posts and users with JWT-ba
 - **Token Expiry**: Tokens expire after 30 minutes by default, ensuring enhanced security.
 - **Like/Dislike**: Authenticated users can like and dislike posts.
 - **Commenting**: Authenticated users can comment on posts.
-- **WebSocket for Notifications**: Authenticated users receive real-time notifications for new comments (see #TODO for planned enhancements).
+- **WebSocket for Notifications**: Authenticated users receive real-time notifications for new comments.
 
 ## Prerequisites
 
@@ -87,6 +93,7 @@ Replace `your_secret_key` and `SQLALCHEMY_DATABASE_URL` with your actual values.
 ### 5. Initialize the Database
 
 Run Alembic migrations to set up the database schema.
+
 ### Needs to be fixed!!!
 
 ```bash
@@ -175,7 +182,7 @@ Get details of the current logged-in user. Requires an authentication token.
 Get user details by ID. Requires an authentication token.
 
 - **Authorization Header**:
-  
+
   ```
   Authorization: Bearer your_token
   ```
@@ -195,7 +202,7 @@ Get user details by ID. Requires an authentication token.
 Get all posts by a specific user.
 
 - **Authorization Header**:
-  
+
   ```
   Authorization: Bearer your_token
   ```
@@ -221,7 +228,7 @@ Get all posts by a specific user.
 Like a post.
 
 - **Authorization Header**:
-  
+
   ```
   Authorization: Bearer your_token
   ```
@@ -240,7 +247,7 @@ Like a post.
 Dislike a post.
 
 - **Authorization Header**:
-  
+
   ```
   Authorization: Bearer your_token
   ```
@@ -261,7 +268,7 @@ Dislike a post.
 Add a comment to a post.
 
 - **Authorization Header**:
-  
+
   ```
   Authorization: Bearer your_token
   ```
@@ -288,7 +295,7 @@ Add a comment to a post.
 Get a specific comment by ID.
 
 - **Authorization Header**:
-  
+
   ```
   Authorization: Bearer your_token
   ```
@@ -337,22 +344,24 @@ Get all comments by a specific user.
 
 ### WebSocket Notifications
 
-Authenticated users can subscribe to real-time notifications for new comments on posts they are either the author of, have commented on, or have subscribed to.
+Authenticated users can subscribe to real-time notifications for new comments on posts they are either the author of,
+have commented on, or have subscribed to.
 
 #### **WebSocket** `/ws/notifications`
 
 - Connect to `/ws/notifications` via WebSocket.
 - The server will push real-time notifications for new comments on relevant posts.
 - Notifications will be sent if the user:
-  - Is the author of the post.
-  - Has commented on the post.
-  - Has subscribed to the post.
+    - Is the author of the post.
+    - Has commented on the post.
+    - Has subscribed to the post.
 
 ---
 
 ## Security
 
-- **JWT Token Expiry**: Tokens are valid for 30 minutes. After this period, the token expires, and the user needs to log in again to get a new token.
+- **JWT Token Expiry**: Tokens are valid for 30 minutes. After this period, the token expires, and the user needs to log
+  in again to get a new token.
 - **Token Validation**: Tokens are checked for expiration and validity on every request to protected routes.
 
 ## Contributing

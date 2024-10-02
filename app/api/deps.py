@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.crud.user import get_user_by_username
 from app.db.session import SessionLocal
-from app.models.user import User
+from app.models.user import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -22,7 +22,7 @@ def get_db():
 
 
 def get_current_user(
-    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+        db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -51,3 +51,11 @@ def get_current_user(
     if not user:
         raise credentials_exception
     return user
+
+
+def is_admin(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough privileges",
+        )
+    return current_user

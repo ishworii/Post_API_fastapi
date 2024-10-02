@@ -17,7 +17,7 @@ from app.models.post import Post
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False},poolclass=StaticPool
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -28,6 +28,7 @@ def override_get_db():
         yield db
     finally:
         db.close()
+
 
 app.dependency_overrides[get_db] = override_get_db
 
@@ -48,7 +49,17 @@ def client(setup_db):
 @pytest.fixture(scope="module")
 def test_user_token(client):
     db = TestingSessionLocal()
-    user_data = UserCreate(username="testuser", password="password", email="test@test.com")
+    user_data = UserCreate(username="testuser", password="password", email="test@test.com", role="normal")
+    user = create_user(db, user_data)
+    token = create_access_token({"sub": user.username})
+    db.close()
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(scope="module")
+def test_admin_token(client):
+    db = TestingSessionLocal()
+    user_data = UserCreate(username="admin", password="password", email="admin@admin.com", role="admin")
     user = create_user(db, user_data)
     token = create_access_token({"sub": user.username})
     db.close()
@@ -62,3 +73,10 @@ def create_posts_for_user(client, test_user_token):
 
     client.post("/posts/", json=post_data_1, headers=test_user_token)
     client.post("/posts/", json=post_data_2, headers=test_user_token)
+
+
+@pytest.fixture(scope="module")
+def create_post_for_admin(client, test_admin_token):
+    post_data_1 = {"title": "Test Post 1 Admin", "content": "This is a test post by admin."}
+
+    client.post("/posts/", json=post_data_1, headers=test_admin_token)

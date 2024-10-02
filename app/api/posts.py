@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.crud import like, post
 from app.models.like import Like
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.like import LikeAction
 from app.schemas.post import PostCreate, PostRead
 from app.models.post import Post
@@ -27,9 +27,9 @@ def get_all_posts(db: Session = Depends(get_db), author_id: int = Query(None, de
     return posts
 
 
-@router.get("/{id}", response_model=PostRead, status_code=status.HTTP_200_OK)
-def get_post(id: int, db: Session = Depends(get_db)):
-    pst = post.get_post(db, id)
+@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
+def get_post(post_id: int, db: Session = Depends(get_db)):
+    pst = post.get_post(db, post_id)
     return pst
 
 
@@ -42,23 +42,40 @@ def create_post(
     return post.create_post(db, post_create, current_user.id)
 
 
-@router.put("/{id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
+@router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
 def update_post(
-        id: int,
+        post_id: int,
         post_read: PostCreate,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    return post.update_post(db, post_read, id, current_user.id)
+    db_post = db.query(Post).filter(Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    if db_post.author_id != current_user.id and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    db_post.title = post_read.title
+    db_post.content = post_read.content
+    db_post.author_id = current_user.id
+    db.commit()
+    db.refresh(db_post)
+    return db_post
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(
-        id: int,
+        post_id: int,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    post.delete_post(db, id)
+    db_post = db.query(Post).filter(Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    if db_post.author_id != current_user.id and current_user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    db.delete(db_post)
+    db.commit()
+    return {"detail": "Post deleted"}
 
 
 # like/dislike a post
@@ -69,19 +86,19 @@ def like_dislike_post(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    get_post = post.get_post(db, id)
-    if not get_post:
+    get_a_post = post.get_post(db, id)
+    if not get_a_post:
         raise HTTPException(status_code=404, detail="detail not found")
     if action == LikeAction.like:
-        like.like_post(db, current_user, get_post)
+        like.like_post(db, current_user, get_a_post)
     elif action == LikeAction.dislike:
-        like.dislike_post(db, current_user, get_post)
+        like.dislike_post(db, current_user, get_a_post)
 
     like_record = (
         db.query(Like)
-        .filter(Like.user_id == current_user.id, Like.post_id == get_post.id)
+        .filter(Like.user_id == current_user.id, Like.post_id == get_a_post.id)
         .first()
     )
     is_like = like_record.is_like if like_record else False
 
-    return {"post_id": get_post.id, "user_id": current_user.id, "is_like": is_like}
+    return {"post_id": get_a_post.id, "user_id": current_user.id, "is_like": is_like}

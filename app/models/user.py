@@ -1,7 +1,13 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean, Enum
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
+from enum import Enum as PyEnum
+
+
+class UserRole(PyEnum):
+    normal = "normal"
+    admin = "admin"
 
 
 class User(Base):
@@ -15,6 +21,7 @@ class User(Base):
         String(128),
         index=False,
     )
+    role = Column(Enum(UserRole), default=UserRole.normal)
     posts = relationship("Post", back_populates="author", cascade="all,delete-orphan")
     likes = relationship("Like", back_populates="user", cascade="all,delete-orphan")
     comments = relationship(

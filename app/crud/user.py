@@ -10,7 +10,7 @@ def get_users(db: Session):
     return db.query(User).all()
 
 
-def get_user_by_username(db: Session, username: int) -> User | None:
+def get_user_by_username(db: Session, username: str) -> User | None:
     user = db.query(User).filter(User.username == username).first()
     return user
 
