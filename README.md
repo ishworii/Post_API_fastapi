@@ -6,13 +6,15 @@ token to access protected routes.
 
 ## TODO
 
-- **~~Add query params to filter query by author, title, search string, or something else~~**
-- **~~Add role-based user (normal/admin)~~**
-    - **~~Admin can delete any post~~,comment**
-    - **~~Normal users can only delete or update their post~~,comment,and user details**
+-
+    -[x] **Add query params to filter query by author, title, search string, or something else**
+-
+    -[x] **Add role-based user (normal/admin)**
+        - [x] **Admin can delete any post,comment**
+        - [x] **Normal users can only delete or update their post,comment,and user details**
 - **Add functionality so that user can subscribe to a post**
-- **~~Only receive notifications if user is an author, has commented~~, or has subscribed to a post.**
-- **Debug failing test cases**
+- [x] **Only receive notifications if user is an author, has commented, or has subscribed to a post.**
+- [x] **Debug failing test cases**
 - **Implement CI/CD**
 - **Add docker file**
 - **Add terraform file**

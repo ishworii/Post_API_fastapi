@@ -35,6 +35,7 @@ def create_user(db: Session, user: UserCreate) -> User:
         email=user.email,
         full_name=user.full_name,
         hashed_password=hash_password(user.password),
+        role=user.role,
     )
     db.add(db_user)
     db.commit()

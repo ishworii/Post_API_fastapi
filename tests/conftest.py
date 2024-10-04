@@ -73,10 +73,3 @@ def create_posts_for_user(client, test_user_token):
 
     client.post("/posts/", json=post_data_1, headers=test_user_token)
     client.post("/posts/", json=post_data_2, headers=test_user_token)
-
-
-@pytest.fixture(scope="module")
-def create_post_for_admin(client, test_admin_token):
-    post_data_1 = {"title": "Test Post 1 Admin", "content": "This is a test post by admin."}
-
-    client.post("/posts/", json=post_data_1, headers=test_admin_token)

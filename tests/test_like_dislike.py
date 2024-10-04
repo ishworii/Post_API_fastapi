@@ -19,81 +19,81 @@ def test_like_post_twice(client, test_user_token, create_posts_for_user):
     assert post['dislike_count'] == 0
 
 
-def test_dislike_post_twice(client, normal_user_token, create_posts_for_user):
+def test_dislike_post_twice(client, test_user_token, create_posts_for_user):
     # Dislike the first post
-    response = client.post('/posts/1/dislike', headers=normal_user_token)
+    response = client.post('/posts/1/dislike', headers=test_user_token)
     assert response.status_code == 201
     data = response.json()
     assert data['is_like'] is False
 
     # Try to dislike the same post again
-    response = client.post('/posts/1/dislike', headers=normal_user_token)
+    response = client.post('/posts/1/dislike', headers=test_user_token)
     assert response.status_code == 201
     data = response.json()
     assert data['is_like'] is False
 
     # Verify the dislike count at 0
-    response = client.get('/posts/1', headers=normal_user_token)
+    response = client.get('/posts/1', headers=test_user_token)
     post = response.json()
     assert post['dislike_count'] == 0
     assert post['like_count'] == 0
 
 
-def test_like_post_once(client, normal_user_token, create_posts_for_user):
-    response = client.post('/posts/1/like', headers=normal_user_token)
+def test_like_post_once(client, test_user_token, create_posts_for_user):
+    response = client.post('/posts/1/like', headers=test_user_token)
     assert response.status_code == 201
     data = response.json()
     assert data['is_like'] is True
 
-    response = client.get('/posts/1', headers=normal_user_token)
+    response = client.get('/posts/1', headers=test_user_token)
     post = response.json()
     assert post['like_count'] == 1
     assert post['dislike_count'] == 0
 
 
-def test_dislike_post_once(client, normal_user_token, create_posts_for_user):
-    response = client.post('/posts/1/dislike', headers=normal_user_token)
+def test_dislike_post_once(client, test_user_token, create_posts_for_user):
+    response = client.post('/posts/1/dislike', headers=test_user_token)
     assert response.status_code == 201
     data = response.json()
     assert data['is_like'] is False
 
-    response = client.get('/posts/1', headers=normal_user_token)
+    response = client.get('/posts/1', headers=test_user_token)
     post = response.json()
     assert post['dislike_count'] == 1
     assert post['like_count'] == 0
 
 
-def test_like_then_dislike(client, normal_user_token, create_posts_for_user):
+def test_like_then_dislike(client, test_user_token, create_posts_for_user):
     # Like the first post
-    response = client.post('/posts/1/like', headers=normal_user_token)
+    response = client.post('/posts/1/like', headers=test_user_token)
     assert response.status_code == 201
 
     # Now dislike the same post
-    response = client.post('/posts/1/dislike', headers=normal_user_token)
+    response = client.post('/posts/1/dislike', headers=test_user_token)
     assert response.status_code == 201
     data = response.json()
     assert data['is_like'] is False
 
     # Verify the like and dislike count
-    response = client.get('/posts/1', headers=normal_user_token)
+    response = client.get('/posts/1', headers=test_user_token)
     post = response.json()
     assert post['like_count'] == 0
     assert post['dislike_count'] == 1
 
 
-def test_dislike_then_like(client, normal_user_token, create_posts_for_user):
+def test_dislike_then_like(client, test_user_token, create_posts_for_user):
     # Dislike the first post
-    response = client.post('/posts/1/dislike', headers=normal_user_token)
+    response = client.post('/posts/1/dislike', headers=test_user_token)
     assert response.status_code == 201
 
     # Now like the same post
-    response = client.post('/posts/1/like', headers=normal_user_token)
+    response = client.post('/posts/1/like', headers=test_user_token)
     assert response.status_code == 201
     data = response.json()
     assert data['is_like'] is True
 
     # Verify the like and dislike count
-    response = client.get('/posts/1', headers=normal_user_token)
+    response = client.get('/posts/1', headers=test_user_token)
     post = response.json()
     assert post['like_count'] == 1
     assert post['dislike_count'] == 0

@@ -15,6 +15,7 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: int
+    role: UserRole = UserRole.normal
 
     class Config:
         orm_mode = True
