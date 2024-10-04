@@ -76,3 +76,26 @@ def test_normal_user_cannot_delete_others_post(client, test_user_token, test_adm
     )
     assert response.status_code == 403
     assert response.json()["detail"] == "Not enough permissions"
+
+
+def test_admin_user_can_edit_any_post(client, test_admin_token, create_posts_for_user):
+    # Admin tries to edit any post
+    edit_data = {"title": "Admin User's Edit", "content": "Admin User tries to edit"}
+    response = client.put(
+        f"/posts/2",
+        json=edit_data,
+        headers=test_admin_token,
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["title"] == "Admin User's Edit"
+    assert data["content"] == "Admin User tries to edit"
+
+
+def test_admin_user_can_delete_others_post(client, test_admin_token, create_posts_for_user):
+    # admin user tries to delete any post
+    response = client.delete(
+        f"/posts/2",
+        headers=test_admin_token,
+    )
+    assert response.status_code == 204
