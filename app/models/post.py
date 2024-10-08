@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -12,7 +12,6 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String)
     content = Column(String)
-    author = Column(String, nullable=True, default="admin")
     created_at = Column(DateTime, default=datetime.now)
     author_id = Column(Integer, ForeignKey("users.id"))
     like_count = Column(Integer, default=0)
@@ -23,3 +22,23 @@ class Post(Base):
     comments = relationship(
         "Comment", back_populates="post", cascade="all, delete-orphan"
     )
+    subscriptions = relationship(
+        "Subscription", back_populates="post", cascade="all, delete-orphan"
+    )
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    post_id = Column(Integer, ForeignKey("post.id", ondelete="CASCADE"), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "post_id", name="user_post_subscriber_unique"),
+    )
+
+    user = relationship("User", back_populates="subscriptions")
+    post = relationship("Post", back_populates="subscriptions")

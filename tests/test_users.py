@@ -78,10 +78,15 @@ def test_update_user(client, test_user_token):
 
 
 def test_update_user_password(client):
-    login_response = client.post("/users/login", data={"username": "new_testuser", "password": "password"})
+    login_response = client.post(
+        "/users/login", data={"username": "new_testuser", "password": "password"}
+    )
     new_password_data = {"password": "newpassword123"}
-    response = client.put("/users/", json=new_password_data,
-                          headers={"Authorization": "Bearer " + login_response.json()["access_token"]})
+    response = client.put(
+        "/users/",
+        json=new_password_data,
+        headers={"Authorization": "Bearer " + login_response.json()["access_token"]},
+    )
     assert response.status_code == 200
 
     login_data = {"username": "new_testuser", "password": "newpassword123"}
@@ -98,8 +103,11 @@ def test_update_user_partial(client):
         "email": "partialupdate@example.com",
     }
 
-    response = client.put("/users/", json=partial_update_data,
-                          headers={"Authorization": "Bearer " + login_response.json()["access_token"]})
+    response = client.put(
+        "/users/",
+        json=partial_update_data,
+        headers={"Authorization": "Bearer " + login_response.json()["access_token"]},
+    )
     assert response.status_code == 200
 
     updated_user = response.json()
@@ -111,9 +119,14 @@ def test_delete_user(client):
     login_data = {"username": "new_username", "password": "newpassword123"}
     login_response = client.post("/users/login", data=login_data)
 
-    response = client.delete("/users/", headers={"Authorization": "Bearer " + login_response.json()["access_token"]})
+    response = client.delete(
+        "/users/",
+        headers={"Authorization": "Bearer " + login_response.json()["access_token"]},
+    )
     assert response.status_code == 204
 
-    user_response = client.get("/users/me",
-                               headers={"Authorization": "Bearer " + login_response.json()["access_token"]})
+    user_response = client.get(
+        "/users/me",
+        headers={"Authorization": "Bearer " + login_response.json()["access_token"]},
+    )
     assert user_response.status_code == 401

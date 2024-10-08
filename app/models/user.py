@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Boolean, Enum
+from enum import Enum as PyEnum
+
+from sqlalchemy import Column, Enum, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
-from enum import Enum as PyEnum
 
 
 class UserRole(PyEnum):
@@ -26,4 +27,7 @@ class User(Base):
     likes = relationship("Like", back_populates="user", cascade="all,delete-orphan")
     comments = relationship(
         "Comment", back_populates="user", cascade="all, delete-orphan"
+    )
+    subscriptions = relationship(
+        "Subscription", back_populates="user", cascade="all, delete-orphan"
     )

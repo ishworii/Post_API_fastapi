@@ -7,17 +7,18 @@ from sqlalchemy.pool import StaticPool
 from app.api.deps import get_db
 from app.core.security import create_access_token
 from app.crud.user import create_user
-from app.schemas.user import UserCreate
 from app.db.base import Base
 from app.main import app
-
-from app.models.user import User
 from app.models.post import Post
+from app.models.user import User
+from app.schemas.user import UserCreate
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -49,7 +50,9 @@ def client(setup_db):
 @pytest.fixture(scope="module")
 def test_user_token(client):
     db = TestingSessionLocal()
-    user_data = UserCreate(username="testuser", password="password", email="test@test.com", role="normal")
+    user_data = UserCreate(
+        username="testuser", password="password", email="test@test.com", role="normal"
+    )
     user = create_user(db, user_data)
     token = create_access_token({"sub": user.username})
     db.close()
@@ -59,7 +62,9 @@ def test_user_token(client):
 @pytest.fixture(scope="module")
 def test_admin_token(client):
     db = TestingSessionLocal()
-    user_data = UserCreate(username="admin", password="password", email="admin@admin.com", role="admin")
+    user_data = UserCreate(
+        username="admin", password="password", email="admin@admin.com", role="admin"
+    )
     user = create_user(db, user_data)
     token = create_access_token({"sub": user.username})
     db.close()
