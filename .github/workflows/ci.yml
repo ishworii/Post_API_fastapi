@@ -1,0 +1,69 @@
+name: CI Pipeline
+
+# Trigger this workflow on pushes to the main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: fastapi_post_db
+        ports:
+          - 5432:5432
+        options: >
+          --health-cmd "pg_isready -U postgres" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Python
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      # Copy environment variables
+      - name: Set up environment
+        run: |
+          cp .env.docker .env
+
+      # Run migrations
+      - name: Run migrations
+        run: |
+          source venv/bin/activate
+          alembic upgrade head
+
+      # Run tests
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest --maxfail=5 --disable-warnings
+
+volumes:
+  postgres_data:
