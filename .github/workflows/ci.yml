@@ -64,6 +64,3 @@ jobs:
         run: |
           source venv/bin/activate
           pytest --maxfail=5 --disable-warnings
-
-volumes:
-  postgres_data:
