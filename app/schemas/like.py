@@ -3,9 +3,11 @@ from enum import Enum
 from pydantic import BaseModel
 
 
-class LikeAction(str, Enum):
+class Action(str, Enum):
     like = "like"
     dislike = "dislike"
+    subscribe = "subscribe"
+    unsubscribe = "unsubscribe"
 
 
 class LikeResponse(BaseModel):
