@@ -1,6 +1,6 @@
 __pycache__/
 .env
+.env.docker
 *.png
 .idea/
 env/
-Dockerfile
