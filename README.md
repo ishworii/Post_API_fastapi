@@ -6,14 +6,14 @@ token to access protected routes.
 
 ## TODO
 
--
-    -[x] **Add query params to filter query by author, title, search string, or something else**
--
-    -[x] **Add role-based user (normal/admin)**
-        - [x] **Admin can delete any post,comment**
-        - [x] **Normal users can only delete or update their post,comment,and user details**
-- **Add functionality so that user can subscribe to a post**
+- [x] **Add query params to filter query by author, title, search string, or something else**
+- [x] **Add role-based user (normal/admin)**
+  - [x] **Admin can delete any post,comment**
+  - [x] **Normal users can only delete or update their post,comment,and user details**
+- [x] **Add functionality so that user can subscribe to a post**
 - [x] **Only receive notifications if user is an author, has commented, or has subscribed to a post.**
+- [x] **Add tests for subscription**
+- [x] **Add tests for websockets**
 - [x] **Debug failing test cases**
 - **Implement CI/CD**
 - **Add docker file**
@@ -280,6 +280,7 @@ Add a comment to a post.
   ```
 
 - **Request Body**:
+
   ```json
   {
     "content": "This is a comment"
@@ -358,9 +359,9 @@ have commented on, or have subscribed to.
 - Connect to `/ws/notifications` via WebSocket.
 - The server will push real-time notifications for new comments on relevant posts.
 - Notifications will be sent if the user:
-    - Is the author of the post.
-    - Has commented on the post.
-    - Has subscribed to the post.
+  - Is the author of the post.
+  - Has commented on the post.
+  - Has subscribed to the post.
 
 ---
 
