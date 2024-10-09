@@ -1,6 +1,3 @@
-from tests.conftest import test_user_token
-
-
 def test_create_post(client, test_user_token):
     response = client.post(
         "/posts/",
@@ -14,7 +11,10 @@ def test_create_post(client, test_user_token):
 
 
 def create_admin_test_post(client, test_admin_token):
-    post_data_1 = {"title": "Test Post 1 Admin", "content": "This is a test post by admin."}
+    post_data_1 = {
+        "title": "Test Post 1 Admin",
+        "content": "This is a test post by admin.",
+    }
     return client.post("/posts/", json=post_data_1, headers=test_admin_token).json()
 
 
@@ -67,7 +67,9 @@ def test_normal_user_cannot_edit_others_post(client, test_user_token, test_admin
     assert response.json()["detail"] == "Not enough permissions"
 
 
-def test_normal_user_cannot_delete_others_post(client, test_user_token, test_admin_token):
+def test_normal_user_cannot_delete_others_post(
+    client, test_user_token, test_admin_token
+):
     # Normal user tries to delete the admin's post
     admin_post = create_admin_test_post(client, test_admin_token)
     response = client.delete(
@@ -78,11 +80,11 @@ def test_normal_user_cannot_delete_others_post(client, test_user_token, test_adm
     assert response.json()["detail"] == "Not enough permissions"
 
 
-def test_admin_user_can_edit_any_post(client, test_admin_token, create_posts_for_user):
+def test_admin_user_can_edit_any_post(client, test_admin_token):
     # Admin tries to edit any post
     edit_data = {"title": "Admin User's Edit", "content": "Admin User tries to edit"}
     response = client.put(
-        f"/posts/2",
+        "/posts/2",
         json=edit_data,
         headers=test_admin_token,
     )
@@ -92,10 +94,10 @@ def test_admin_user_can_edit_any_post(client, test_admin_token, create_posts_for
     assert data["content"] == "Admin User tries to edit"
 
 
-def test_admin_user_can_delete_others_post(client, test_admin_token, create_posts_for_user):
+def test_admin_user_can_delete_others_post(client, test_admin_token):
     # admin user tries to delete any post
     response = client.delete(
-        f"/posts/2",
+        "/posts/2",
         headers=test_admin_token,
     )
     assert response.status_code == 204
