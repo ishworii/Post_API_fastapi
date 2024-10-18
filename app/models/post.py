@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import relationship
 
@@ -26,7 +34,7 @@ class Post(Base):
     subscriptions = relationship(
         "Subscription", back_populates="post", cascade="all, delete-orphan"
     )
-    search_vector = Column(TSVECTOR)
+    search_vector = Column(TSVECTOR, nullable=False, index=True)
 
 
 class Subscription(Base):

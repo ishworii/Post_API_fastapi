@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -30,12 +31,6 @@ def get_all_posts(
     return posts
 
 
-@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
-def get_post(post_id: int, db: Session = Depends(get_db)):
-    pst = post.get_post(db, post_id)
-    return pst
-
-
 @router.post("/", response_model=PostRead, status_code=status.HTTP_201_CREATED)
 def create_post(
     post_create: PostCreate,
@@ -46,9 +41,35 @@ def create_post(
 
 
 @router.get("/search")
-def search(query: str = Query(...), db: Session = Depends(get_db)):
-    results = post.search_post(db, search_query=query)
-    return results
+async def search_posts(query: str, db: Session = Depends(get_db)):
+    sql_query = """
+        SELECT * 
+        FROM post 
+        WHERE search_vector @@ plainto_tsquery('english', :query)
+        ORDER BY ts_rank_cd(search_vector, plainto_tsquery('english', :query)) DESC;
+    """
+    result = db.execute(text(sql_query), {"query": query}).fetchall()
+
+    posts = [
+        {
+            "id": row[0],
+            "title": row[1],
+            "content": row[2],
+            "created_at": row[3].isoformat(),
+            "author_id": row[4],
+            "like_count": row[5],
+            "dislike_count": row[6],
+        }
+        for row in result
+    ]
+
+    return posts
+
+
+@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
+def get_post(post_id: int, db: Session = Depends(get_db)):
+    pst = post.get_post(db, post_id)
+    return pst
 
 
 @router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
