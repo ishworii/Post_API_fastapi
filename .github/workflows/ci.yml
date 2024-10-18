@@ -46,7 +46,7 @@ jobs:
       # Copy environment variables
       - name: Set up environment
         run: |
-          cp .env.docker .env
+          cp .env.ci .env
 
       # Run migrations
       - name: Run migrations
