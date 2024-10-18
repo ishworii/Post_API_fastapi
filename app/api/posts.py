@@ -45,6 +45,12 @@ def create_post(
     return post.create_post(db, post_create, current_user.id)
 
 
+@router.get("/search")
+def search(query: str = Query(...), db: Session = Depends(get_db)):
+    results = post.search_post(db, search_query=query)
+    return results
+
+
 @router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
 def update_post(
     post_id: int,

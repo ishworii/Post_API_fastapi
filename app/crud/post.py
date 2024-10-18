@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.models.post import Post, Subscription
@@ -50,3 +51,13 @@ def delete_post(db: Session, post_id: int):
 
 def get_subscribers_for_a_post(db: Session, post_id: int) -> list[Subscription]:
     return db.query(Subscription).filter(post_id).all()
+
+
+def search_post(db: Session, search_query: str):
+    query = """
+    SELECT * FROM post
+    WHERE search_vector @@ plainto_tsquery('english', :search_query)
+    ORDER BY ts_rank_cd(search_vector,plainto_tsquery('english',:search_query)) DESC;
+    """
+
+    return db.execute(text(query), {"search_query": search_query}).fetchall()
