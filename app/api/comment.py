@@ -13,6 +13,7 @@ from app.core.security import verify_jwt_token
 from app.crud import comment as crud_comment
 from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentRead
+from app.utils.content_moderation import is_toxic
 from app.websockets import ConnectionManager
 
 router = APIRouter()
@@ -30,6 +31,10 @@ async def create_comment(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if is_toxic(comment.content):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Toxic comment detected"
+        )
     new_comment = crud_comment.create_comment(
         db, comment=comment, post_id=post_id, user_id=current_user.id
     )
@@ -78,6 +83,10 @@ def update_comment(
         raise HTTPException(
             status_code=403, detail="Not authorized to update this comment"
         )
+    if is_toxic(comment.content):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Toxic comment detected"
+        )
     return crud_comment.update_comment(
         db, comment_id=comment_id, content=comment.content
     )
@@ -108,9 +117,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await manager.connect(websocket,username)
+    await manager.connect(websocket, username)
     try:
         while True:
             data = await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(websocket,username)
+        manager.disconnect(websocket, username)

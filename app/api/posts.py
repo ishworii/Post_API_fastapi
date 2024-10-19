@@ -9,6 +9,7 @@ from app.models.post import Post, Subscription
 from app.models.user import User, UserRole
 from app.schemas.like import Action
 from app.schemas.post import PostCreate, PostRead
+from app.utils.content_moderation import is_toxic
 
 router = APIRouter()
 
@@ -37,6 +38,12 @@ def create_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if is_toxic(post_create.content) or is_toxic(post_create.title):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Toxicity detected in the post",
+        )
+
     return post.create_post(db, post_create, current_user.id)
 
 
@@ -87,6 +94,11 @@ def update_post(
     if db_post.author_id != current_user.id and current_user.role != UserRole.admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+    if is_toxic(post_read.title) or is_toxic(post_read.content):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Toxicity detected in the updated post",
         )
     db_post.title = post_read.title
     db_post.content = post_read.content
