@@ -1,4 +1,7 @@
+import os
+
 import pytest
+from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -13,7 +16,10 @@ from app.models.post import Post
 from app.models.user import User
 from app.schemas.user import UserCreate
 
-SQLALCHEMY_DATABASE_URL = "postgresql://ishwor:password@localhost:5432/test_db"
+load_dotenv(".env")
+
+
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_TEST_DATABASE_URL")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
