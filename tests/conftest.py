@@ -21,6 +21,8 @@ load_dotenv(".env")
 
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_TEST_DATABASE_URL")
 
+print(SQLALCHEMY_DATABASE_URL)
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
