@@ -15,7 +15,7 @@ from app.schemas.user import UserCreate
 
 SQLALCHEMY_DATABASE_URL = "postgresql://ishwor:password@localhost:5432/test_db"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, poolclass=StaticPool)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
