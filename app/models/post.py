@@ -34,7 +34,7 @@ class Post(Base):
     subscriptions = relationship(
         "Subscription", back_populates="post", cascade="all, delete-orphan"
     )
-    search_vector = Column(TSVECTOR, nullable=False, index=True)
+    search_vector = Column(TSVECTOR, index=True)
 
 
 class Subscription(Base):

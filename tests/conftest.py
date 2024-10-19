@@ -13,13 +13,9 @@ from app.models.post import Post
 from app.models.user import User
 from app.schemas.user import UserCreate
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+SQLALCHEMY_DATABASE_URL = "postgresql://ishwor:password@localhost:5432/test_db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, poolclass=StaticPool)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
