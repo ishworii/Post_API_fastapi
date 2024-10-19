@@ -22,8 +22,11 @@ jobs:
           POSTGRES_DB: fastapi_post_db
         ports:
           - 5432:5432
-        volumes:
-          - postgres_data:/var/lib/postgresql/data
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       # Checkout code
@@ -42,6 +45,11 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
+
+      - name: Verify PostgreSQL connection
+        run: |
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=password psql -h localhost -U postgres -d fastapi_post_db -c '\l'
 
       # Copy environment variables
       - name: Set up environment

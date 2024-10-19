@@ -36,6 +36,7 @@ token to access protected routes.
 - **CRUD Operations**: Create, read, update, and delete posts.
 - **User Management**: User sign-up, login, and access control for creating/updating/deleting posts.
 - **Post Management**: Get all posts, get a single post, create, update, and delete posts.
+- **Content Moderation**: Integrated text-based content moderation using a pretrained machine learning model (unitary/toxic-bert) to detect and block toxic content in posts.
 - **Token Expiry**: Tokens expire after 30 minutes by default, ensuring enhanced security.
 - **Like/Dislike**: Authenticated users can like and dislike posts.
 - **Commenting**: Authenticated users can comment on posts.
@@ -369,8 +370,6 @@ have commented on, or have subscribed to.
   - Is the author of the post.
   - Has commented on the post.
   - Has subscribed to the post.
-
----
 
 ## Security
 
