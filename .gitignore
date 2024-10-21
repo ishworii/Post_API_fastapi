@@ -5,3 +5,4 @@ __pycache__/
 .idea/
 env/
 .github
+node_modules/
