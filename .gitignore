@@ -6,3 +6,5 @@ __pycache__/
 env/
 .github
 node_modules/
+/public/build/
+.DS_Store
