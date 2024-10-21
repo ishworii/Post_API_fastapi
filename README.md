@@ -15,7 +15,7 @@ token to access protected routes.
 - [x] **Add tests for subscription**
 - [x] **Add tests for websockets**
 - [x] **Debug failing test cases**
-- **Implement CI/CD**
+- [x] **Implement CI/CD**
 - [x] **Add docker file**
 - **Add terraform file**
 - [x] **Full-text search and filtering**
