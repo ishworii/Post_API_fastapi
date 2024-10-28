@@ -1,0 +1,16 @@
+{
+	"/": [
+		"src/routes/+page.ts"
+	],
+	"/create-post": [
+		"src/routes/create-post/+page.ts"
+	],
+	"/login": [],
+	"/posts/[id]": [
+		"src/routes/posts/[id]/+page.ts"
+	],
+	"/profile": [
+		"src/routes/profile/+page.ts"
+	],
+	"/register": []
+}
