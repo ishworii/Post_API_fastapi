@@ -2,7 +2,7 @@ services:
   fastapi:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
     container_name: fastapi_app
     restart: always
     ports:
