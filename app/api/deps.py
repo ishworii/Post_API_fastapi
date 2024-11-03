@@ -9,7 +9,22 @@ from sqlalchemy.orm import Session
 from app.crud.user import get_user_by_username
 from app.db.session import SessionLocal
 from app.models.user import User, UserRole
+from fastapi import Request
+from redis.asyncio import Redis
+from typing import Annotated
+from fastapi import Depends
 
+from app.services.cache import CacheService
+
+async def get_redis(request: Request) -> Redis:
+    return request.app.state.redis_client
+
+RedisClient = Annotated[Redis, Depends(get_redis)]
+
+async def get_post_cache(redis: RedisClient) -> CacheService:
+    return CacheService(redis, prefix="post")
+
+PostCache = Annotated[CacheService, Depends(get_post_cache)]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
@@ -19,6 +34,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
 
 
 def get_current_user(

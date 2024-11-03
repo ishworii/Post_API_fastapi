@@ -2,13 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, get_post_cache
 from app.crud import like, post
 from app.models.like import Like
 from app.models.post import Post, Subscription
 from app.models.user import User, UserRole
 from app.schemas.like import Action
 from app.schemas.post import PostCreate, PostRead
+from app.api.deps import PostCache
+
 
 router = APIRouter()
 
@@ -68,17 +70,22 @@ async def search_posts(query: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
-def get_post(post_id: int, db: Session = Depends(get_db)):
+async def get_post(post_id: int, db: Session = Depends(get_db),cache:PostCache=Depends(get_post_cache)):
+    cache_key = str(post_id)
+    if cached_data := await cache.get(cache_key):
+        return PostRead(**cached_data)
     pst = post.get_post(db, post_id)
+    await cache.set(cache_key,pst)
     return pst
 
 
 @router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
-def update_post(
+async def update_post(
     post_id: int,
     post_read: PostCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    cache : PostCache = Depends(get_post_cache)
 ):
     db_post = db.query(Post).filter(Post.id == post_id).first()
     if not db_post:
@@ -94,14 +101,16 @@ def update_post(
     db_post.author_id = current_user.id
     db.commit()
     db.refresh(db_post)
+    await cache.delete(str(post_id))
     return db_post
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(
+async def delete_post(
     post_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    cache : PostCache = Depends(get_post_cache),
 ):
     db_post = db.query(Post).filter(Post.id == post_id).first()
     if not db_post:
@@ -114,6 +123,7 @@ def delete_post(
         )
     db.delete(db_post)
     db.commit()
+    await cache.delete(str(post.id))
     return {"detail": "Post deleted"}
 
 

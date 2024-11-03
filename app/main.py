@@ -1,3 +1,4 @@
+from typing import AsyncIterator
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,9 +10,31 @@ from app.models.comment import Comment
 from app.models.like import Like
 from app.models.post import Post, Subscription
 from app.models.user import User
+from contextlib import asynccontextmanager
+from redis.asyncio import Redis
+
 load_dotenv(".env")
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    redis_client = Redis.from_url(os.getenv("REDIS_URL"))
+    
+    try:
+        # Test the connection
+        await redis_client.ping()
+        # Store the client in app state
+        app.state.redis_client = redis_client
+        print("Connected to Redis")
+        yield
+    finally:
+        # Cleanup: Close the Redis connection when the server stops
+        await redis_client.close()
+    
+
+
+app = FastAPI(lifespan=lifespan)
+
+
 
 app.add_middleware(
     CORSMiddleware,
