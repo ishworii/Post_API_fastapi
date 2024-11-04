@@ -12,6 +12,7 @@ from app.models.post import Post, Subscription
 from app.models.user import User
 from contextlib import asynccontextmanager
 from redis.asyncio import Redis
+import os
 
 load_dotenv(".env")
 

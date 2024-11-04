@@ -2,15 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, get_post_cache
+from app.api.deps import PostCache
+from app.api.deps import get_current_user, get_db
 from app.crud import like, post
 from app.models.like import Like
 from app.models.post import Post, Subscription
 from app.models.user import User, UserRole
 from app.schemas.like import Action
 from app.schemas.post import PostCreate, PostRead
-from app.api.deps import PostCache
-
 
 router = APIRouter()
 
@@ -39,7 +38,6 @@ def create_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-
     return post.create_post(db, post_create, current_user.id)
 
 
@@ -70,22 +68,22 @@ async def search_posts(query: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
-async def get_post(post_id: int, db: Session = Depends(get_db),cache:PostCache=Depends(get_post_cache)):
+async def get_post(cache: PostCache, post_id: int, db: Session = Depends(get_db)):
     cache_key = str(post_id)
     if cached_data := await cache.get(cache_key):
         return PostRead(**cached_data)
     pst = post.get_post(db, post_id)
-    await cache.set(cache_key,pst)
+    await cache.set(cache_key, pst)
     return pst
 
 
 @router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
 async def update_post(
+    cache: PostCache,
     post_id: int,
     post_read: PostCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    cache : PostCache = Depends(get_post_cache)
 ):
     db_post = db.query(Post).filter(Post.id == post_id).first()
     if not db_post:
@@ -107,10 +105,10 @@ async def update_post(
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(
+    cache: PostCache,
     post_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    cache : PostCache = Depends(get_post_cache),
 ):
     db_post = db.query(Post).filter(Post.id == post_id).first()
     if not db_post:
