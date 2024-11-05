@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.api.deps import get_db
 from app.core.security import create_access_token
@@ -14,13 +13,13 @@ from app.db.base import Base
 from app.main import app
 from app.models.post import Post
 from app.models.user import User
+from app.models.like import Like
+from app.models.comment import Comment
 from app.schemas.user import UserCreate
 
 load_dotenv(".env")
 
-
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_TEST_DATABASE_URL")
-
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

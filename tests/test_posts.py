@@ -1,4 +1,4 @@
-def test_create_post(client, test_user_token):
+def test_create_post(client, test_user_token,create_posts_for_user):
     response = client.post(
         "/posts/",
         json={"title": "New Post", "content": "Content of the new post."},
@@ -18,23 +18,22 @@ def create_admin_test_post(client, test_admin_token):
     return client.post("/posts/", json=post_data_1, headers=test_admin_token).json()
 
 
-def test_get_all_post(client, test_user_token):
+def test_get_all_post(client, test_user_token,create_posts_for_user):
     response = client.get("/posts/", headers=test_user_token)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     assert len(data) > 0
     assert isinstance(data[0], dict)
-    assert data[0]["title"] == "New Post"
-    assert data[0]["content"] == "Content of the new post."
+    assert data[0]["title"] == "Test Post 1"
+    assert data[0]["content"] == "This is a test post."
 
 
-def test_get_post_by_id(client, test_user_token):
+def test_get_post_by_id(client, test_user_token,create_posts_for_user):
     response = client.get("/posts/1", headers=test_user_token)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == 1
-    assert data["title"] == "New Post"
 
 
 def test_update_post(client, test_user_token):

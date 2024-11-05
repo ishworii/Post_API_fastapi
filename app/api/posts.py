@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import PostCache
-from app.api.deps import get_current_user, get_db
+from app.api.deps import PostCache, get_current_user, get_db
 from app.crud import like, post
 from app.models.like import Like
 from app.models.post import Post, Subscription
@@ -38,7 +37,11 @@ def create_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return post.create_post(db, post_create, current_user.id)
+    new_post = Post(**post_create.model_dump(), author_id=current_user.id)
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return new_post
 
 
 @router.get("/search")
@@ -71,10 +74,16 @@ async def search_posts(query: str, db: Session = Depends(get_db)):
 async def get_post(cache: PostCache, post_id: int, db: Session = Depends(get_db)):
     cache_key = str(post_id)
     if cached_data := await cache.get(cache_key):
+        print(cache_key)
         return PostRead(**cached_data)
-    pst = post.get_post(db, post_id)
-    await cache.set(cache_key, pst)
-    return pst
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with id:{post_id} not found",
+        )
+    await cache.set(cache_key, post.__dict__)
+    return post
 
 
 @router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_201_CREATED)
@@ -119,20 +128,22 @@ async def delete_post(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
+    await cache.delete(str(db_post.id))
     db.delete(db_post)
     db.commit()
-    await cache.delete(str(post.id))
     return {"detail": "Post deleted"}
 
 
 # like/dislike/subscribe/unsubscribe a post
 @router.post("/{id}/{action}", status_code=status.HTTP_201_CREATED)
-def like_dislike_post(
+async def like_dislike_post(
+    cache:PostCache,
     id: int,
     action: Action,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    cache_key = str(id)
     get_a_post = post.get_post(db, id)
     if not get_a_post:
         raise HTTPException(status_code=404, detail="detail not found")
@@ -159,6 +170,7 @@ def like_dislike_post(
         db.add(new_subscription)
         db.commit()
         db.refresh(new_subscription)
+        await cache.delete(cache_key)
         return {
             "message": "subscribed successfully",
             "user_id": current_user.id,
@@ -181,6 +193,7 @@ def like_dislike_post(
             )
         db.delete(subscription)
         db.commit()
+        await cache.delete(cache_key)
         return {
             "message": "Unsubscribed successfully",
             "post_id": get_a_post.id,
@@ -193,5 +206,5 @@ def like_dislike_post(
         .first()
     )
     is_like = like_record.is_like if like_record else False
-
+    await cache.delete(cache_key)
     return {"post_id": get_a_post.id, "user_id": current_user.id, "is_like": is_like}
