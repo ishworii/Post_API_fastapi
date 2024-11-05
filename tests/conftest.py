@@ -6,15 +6,15 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.api.deps import get_db
+from app.api.deps import get_db, get_post_cache
 from app.core.security import create_access_token
 from app.crud.user import create_user
 from app.db.base import Base
 from app.main import app
+from app.models.comment import Comment
+from app.models.like import Like
 from app.models.post import Post
 from app.models.user import User
-from app.models.like import Like
-from app.models.comment import Comment
 from app.schemas.user import UserCreate
 
 load_dotenv(".env")
@@ -31,9 +31,20 @@ def override_get_db():
         yield db
     finally:
         db.close()
+        
+class MockRedis:
+    async def set(*args,**kwargs):
+        pass
+    async def get(*args,**kwargs):
+        pass
+    async def delete(*args,**kwargs):
+        pass
+        
 
 
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_post_cache] = lambda : MockRedis()
+
 
 
 @pytest.fixture(scope="module")
