@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -13,7 +14,7 @@ from app.schemas.post import PostCreate, PostRead
 router = APIRouter()
 
 
-@router.get("/", response_model=list[PostRead], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=list[PostRead], status_code=status.HTTP_200_OK,dependencies=[Depends(RateLimiter(times=2,seconds=5))])
 def get_all_posts(
     db: Session = Depends(get_db),
     author_id: int = Query(None, description="Filter by author id"),
@@ -31,7 +32,7 @@ def get_all_posts(
     return posts
 
 
-@router.post("/", response_model=PostRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=PostRead, status_code=status.HTTP_201_CREATED,dependencies=[Depends(RateLimiter(times=2,seconds=5))])
 def create_post(
     post_create: PostCreate,
     db: Session = Depends(get_db),
@@ -44,7 +45,7 @@ def create_post(
     return new_post
 
 
-@router.get("/search")
+@router.get("/search",dependencies=[Depends(RateLimiter(times=2,seconds=5))])
 async def search_posts(query: str, db: Session = Depends(get_db)):
     sql_query = """
         SELECT * 
@@ -70,7 +71,7 @@ async def search_posts(query: str, db: Session = Depends(get_db)):
     return posts
 
 
-@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
+@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK,dependencies=[Depends(RateLimiter(times=2,seconds=5))])
 async def get_post(cache: PostCache, post_id: int, db: Session = Depends(get_db)):
     cache_key = str(post_id)
     if cached_data := await cache.get(cache_key):
