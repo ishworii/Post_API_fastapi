@@ -28,6 +28,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       # Checkout code
       - name: Checkout code
@@ -50,6 +60,11 @@ jobs:
         run: |
           sudo apt-get install -y postgresql-client
           PGPASSWORD=password psql -h localhost -U postgres -d fastapi_post_db -c '\l'
+
+      - name: Verify Redis connection
+        run: |
+          sudo apt-get install -y redis-tools
+          redis-cli ping
 
       # Copy environment variables
       - name: Set up environment
