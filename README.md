@@ -1,10 +1,16 @@
-# FastAPI Blog API
+# FastAPI Social Media API
 
-This is a **FastAPI**-based RESTful API for managing posts and users with JWT-based authentication. The API allows users
-to create, read, update, and delete posts, and provides authentication through token-based login. Users need a valid
-token to access protected routes.
+# History
 
-## TODO
+Initially this was supposed to be a simple blog api written with FastAPI but as I progressed through the project, I
+decided to make it full blown social media API with all the standard features that a social media app will have. I know,
+there are few more features to add before this becomes "Social Media API" but I am calling it now. I am more concerned about
+learning features and understanding FastAPI rather than making it production ready social media api. I might make few blogs
+along the way about the whole experience.
+
+### Here's a list of todos, most completed few in the progress:
+
+### TODO
 
 - [x] **Add query params to filter query by author, title, search string, or something else**
 - [x] **Add role-based user (normal/admin)**
@@ -26,27 +32,16 @@ token to access protected routes.
 - **Advanced RBAC**
 - **User Analytics**
 - [x] **Setup test-db in docker and change tests to use Postgresql**
-- [x] **Better understand alembic and its workings**
+- **Better understand alembic and its workings**
 - [x] **Fix the bugs preventing the post to be persistent**
 - [x] **Fix the jwt token validation bug**
 - **Add advanced rate limiting specific to user roles**
-
-## DISCLAIMER
-
-### Alembic migrations currently not functional, will fix later.
-
-## Features
-
-- **JWT Authentication**: Secure your API endpoints with token-based authentication.
-- **CRUD Operations**: Create, read, update, and delete posts.
-- **User Management**: User sign-up, login, and access control for creating/updating/deleting posts.
-- **Post Management**: Get all posts, get a single post, create, update, and delete posts.
-- **Content Moderation**: Integrated text-based content moderation using a pretrained machine learning model (
-  unitary/toxic-bert) to detect and block toxic content in posts.
-- **Token Expiry**: Tokens expire after 30 minutes by default, ensuring enhanced security.
-- **Like/Dislike**: Authenticated users can like and dislike posts.
-- **Commenting**: Authenticated users can comment on posts.
-- **WebSocket for Notifications**: Authenticated users receive real-time notifications for new comments.
+- **Fix the mockup redis in testing**
+- **Add ability to follow other people**
+- **Add GraphQL**
+- **Add background tasks**
+- **Add fuzzy match based searching**
+- **Add tags to the post**
 
 ## Prerequisites
 
@@ -55,40 +50,23 @@ token to access protected routes.
 - **SQLAlchemy**
 - **Alembic**
 - **PostgreSQL** (or any SQL database)
-- **JWT (Json Web Token)** for authentication
-- **Docker** (optional, for deployment)
-
-## Project Structure
-
-```bash
-project-root/
-├── alembic/                 # Alembic migrations
-├── app/
-│   ├── api/                 # API routes (users, posts, comments, auth)
-│   ├── core/                # Config, security, and middleware
-│   ├── crud/                # CRUD operations
-│   ├── db/                  # Database initialization
-│   ├── models/              # SQLAlchemy models
-│   ├── schemas/             # Pydantic models (request/response)
-│   └── main.py              # Main entry point for the application
-├── alembic.ini              # Alembic configuration file
-└── README.md                # Project documentation
-```
+- **Docker**
+- **Redis**
 
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/ishworii/Post_API_fastapi.git
-cd Post_API_fastapi
+git clone https://github.com/ishworii/FastAPI_Social_Media_API.git
+cd FastAPI_Social_Media_API
 ```
 
 ### 2. Set Up a Virtual Environment
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv env
+source env/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 ### 3. Install Dependencies
@@ -100,25 +78,21 @@ pip install -r requirements.txt
 ### 4. Set Up Environment Variables
 
 Create a `.env` file in the project root with the following contents:
+Also create `.env.docker` for docker and `.env.ci` for GitHub Actions, the contents will be similar for these files
+Just slight altercations.
 
 ```
 SECRET_KEY=your_secret_key
 ALGORITHM=HS256
-SQLALCHEMY_DATABASE_URL=postgresql://user:password@localhost/dbname
+SQLALCHEMY_DATABASE_URL=postgresql://<user>:<password>@<localhost>/<dbname>
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+REDIS_URL=redis://<localhost>:<port_number>/0
+SQLALCHEMY_TEST_DATABASE_URL=postgresql://<user>:<password>@<localhost>/<test_dbname>
 ```
 
-Replace `your_secret_key` and `SQLALCHEMY_DATABASE_URL` with your actual values.
+Replace the variables with actual values
 
-### 5. Initialize the Database
-
-Run Alembic migrations to set up the database schema.
-
-### Needs to be fixed!!!
-
-```bash
-alembic upgrade head
-```
+### 5. Run redis in a docker or locally
 
 ### 6. Run the Application
 
@@ -129,260 +103,31 @@ fastapi dev app/main.py
 ```
 
 The API will be available at `http://127.0.0.1:8000`.
+Check the documentation at `http://127.0.0.1:8000/docs` or `http://127.0.0.1:8000/redoc` , I prefer the later.
 
-## Endpoints
+### 7. To test the app
 
-### Authentication
+Create the test db beforehand.
 
-#### **POST** `/users/register`
+```bash
+pytest
+```
 
-Create a new user.
+# Endpoints
 
-- **Request Body**:
-  ```json
-  {
-    "username": "USERNAME",
-    "email": "EMAIL",
-    "fullname": "FULL NAME",
-    "password": "PASSWORD"
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "username": "USERNAME",
-    "email": "EMAIL",
-    "full_name": "FULL NAME",
-    "id": "ID"
-  }
-  ```
+Here's the brief overview of endpoints:
 
-#### **POST** `/users/login`
-
-Login to get an access token.
-
-- **Request Body (x-www-form-urlencoded)**:
-  ```json
-  {
-    "username": "your_username",
-    "password": "your_password"
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "access_token": "your_token",
-    "token_type": "bearer",
-    "expires_in": "30 minutes"
-  }
-  ```
-
-#### **GET** `/users/me`
-
-Get details of the current logged-in user. Requires an authentication token.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Response**:
-  ```json
-  {
-    "username": "your_username",
-    "id": 1,
-    "email": "your email",
-    "full_name": "your full name"
-  }
-  ```
-
-#### **GET** `/users/{id}`
-
-Get user details by ID. Requires an authentication token.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Response**:
-  ```json
-  {
-    "username": "your_username",
-    "email": "your_email",
-    "full_name": "your_full_name",
-    "id": 1
-  }
-  ```
-
-#### **GET** `/users/{id}/posts`
-
-Get all posts by a specific user.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Response**:
-  ```json
-  [
-    {
-      "title": "Post Title",
-      "content": "Post Content",
-      "id": 1,
-      "author_id": 1,
-      "like_count": 0,
-      "dislike_count": 0
-    }
-  ]
-  ```
-
-### Likes/Dislikes
-
-#### **POST** `/posts/{id}/like`
-
-Like a post.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Response**:
-  ```json
-  {
-    "is_like": true,
-    "like_count": 1,
-    "dislike_count": 0
-  }
-  ```
-
-#### **POST** `/posts/{id}/dislike`
-
-Dislike a post.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Response**:
-  ```json
-  {
-    "is_like": false,
-    "like_count": 0,
-    "dislike_count": 1
-  }
-  ```
-
-### Comments
-
-#### **POST** `/posts/{id}/comments`
-
-Add a comment to a post.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Request Body**:
-
-  ```json
-  {
-    "content": "This is a comment"
-  }
-  ```
-
-- **Response**:
-  ```json
-  {
-    "id": 1,
-    "content": "This is a comment",
-    "post_id": 1,
-    "user_id": 1
-  }
-  ```
-
-#### **GET** `/comments/{id}`
-
-Get a specific comment by ID.
-
-- **Authorization Header**:
-
-  ```
-  Authorization: Bearer your_token
-  ```
-
-- **Response**:
-  ```json
-  {
-    "id": 1,
-    "content": "This is a comment",
-    "post_id": 1,
-    "user_id": 1
-  }
-  ```
-
-#### **GET** `/posts/{id}/comments`
-
-Get all comments for a specific post.
-
-- **Response**:
-  ```json
-  [
-    {
-      "id": 1,
-      "content": "This is a comment",
-      "post_id": 1,
-      "user_id": 1
-    }
-  ]
-  ```
-
-#### **GET** `/users/{id}/comments`
-
-Get all comments by a specific user.
-
-- **Response**:
-  ```json
-  [
-    {
-      "id": 1,
-      "content": "This is a comment",
-      "post_id": 1,
-      "user_id": 1
-    }
-  ]
-  ```
-
-### WebSocket Notifications
-
-Authenticated users can subscribe to real-time notifications for new comments on posts they are either the author of,
-have commented on, or have subscribed to.
-
-#### **WebSocket** `/ws/notifications`
-
-- Connect to `/ws/notifications` via WebSocket.
-- The server will push real-time notifications for new comments on relevant posts.
-- Notifications will be sent if the user:
-  - Is the author of the post.
-  - Has commented on the post.
-  - Has subscribed to the post.
-
-## Security
-
-- **JWT Token Expiry**: Tokens are valid for 30 minutes. After this period, the token expires, and the user needs to log
-  in again to get a new token.
-- **Token Validation**: Tokens are checked for expiration and validity on every request to protected routes.
-
-## Contributing
-
-Feel free to submit issues or pull requests for improvements and bug fixes!
+1. GET /posts : get all the post
+2. POST /posts : Create a new post
+3. GET /posts/search?query={query} : Full text based search
+4. GET /posts/{id} : Get post with {id}
+5. PUT /posts/{id} : Update a specific post
+6. DELETE /posts/{id} : Delete a specific post
+7. POST /posts/{id}/{action} : Action can be like or dislike a post and suscribe or unsuscribe from a post
+8. POST /posts/{id}/comment : Add a new comment under a post
+9. GET /comments/{comment_id} : Get a comment
+10. PUT /comments/{comment_id} : Update a comment
+11. DELETE /comments/{comment_id} : Delete a comment
+12. POST /users/register : Register a user
+13. POST /users/login : Login
+14. GET /users/me : Get current user
