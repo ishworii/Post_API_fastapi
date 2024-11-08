@@ -131,3 +131,5 @@ Here's the brief overview of endpoints:
 12. POST /users/register : Register a user
 13. POST /users/login : Login
 14. GET /users/me : Get current user
+
+#### I completely forgot about the websockets and authentication, i will add it later.
