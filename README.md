@@ -42,6 +42,8 @@ along the way about the whole experience.
 - **Add background tasks**
 - **Add fuzzy match based searching**
 - **Add tags to the post**
+- **Add logging**
+- **Evaluate poetry for better package management**
 
 ## Prerequisites
 
