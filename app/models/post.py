@@ -7,12 +7,28 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
-    func,
+    Table,
 )
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
+
+post_tags = Table(
+    "post_tags",
+    Base.metadata,
+    Column("post_id", Integer, ForeignKey("post.id", ondelete="CASCADE")),
+    Column("tag_id", Integer, ForeignKey("tag.id", ondelete="CASCADE")),
+)
+
+
+class Tag(Base):
+    __tablename__ = "tag"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    posts = relationship("Post", secondary=post_tags, back_populates="tags")
 
 
 class Post(Base):
@@ -35,6 +51,7 @@ class Post(Base):
         "Subscription", back_populates="post", cascade="all, delete-orphan"
     )
     search_vector = Column(TSVECTOR, index=True)
+    tags = relationship("Tag", secondary=post_tags, back_populates="posts")
 
 
 class Subscription(Base):

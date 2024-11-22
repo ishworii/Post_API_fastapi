@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import PostCache, get_current_user, get_db
 from app.crud import like, post
 from app.models.like import Like
-from app.models.post import Post, Subscription
+from app.models.post import Post, Subscription, Tag
 from app.models.user import User, UserRole
 from app.schemas.like import Action
 from app.schemas.post import PostCreate, PostRead
@@ -14,7 +14,12 @@ from app.schemas.post import PostCreate, PostRead
 router = APIRouter()
 
 
-@router.get("/", response_model=list[PostRead], status_code=status.HTTP_200_OK,dependencies=[Depends(RateLimiter(times=20,seconds=5))])
+@router.get(
+    "/",
+    response_model=list[PostRead],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RateLimiter(times=20, seconds=5))],
+)
 def get_all_posts(
     db: Session = Depends(get_db),
     author_id: int = Query(None, description="Filter by author id"),
@@ -32,20 +37,35 @@ def get_all_posts(
     return posts
 
 
-@router.post("/", response_model=PostRead, status_code=status.HTTP_201_CREATED,dependencies=[Depends(RateLimiter(times=20,seconds=5))])
+@router.post(
+    "/",
+    response_model=PostRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RateLimiter(times=20, seconds=5))],
+)
 def create_post(
     post_create: PostCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    new_post = Post(**post_create.model_dump(), author_id=current_user.id)
+    post_data = post_create.model_dump(exclude={"tags"})
+    new_post = Post(**post_data, author_id=current_user.id)
+    if post_create.tags:
+        for tag_data in post_create.tags:
+            tag = (
+                db.query(Tag).filter(Tag.name == tag_data.name.lower().strip()).first()
+            )
+            if not tag:
+                tag = Tag(name=tag_data.name.lower().strip())
+                db.add(tag)
+            new_post.tags.append(tag)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
     return new_post
 
 
-@router.get("/search",dependencies=[Depends(RateLimiter(times=20,seconds=5))])
+@router.get("/search", dependencies=[Depends(RateLimiter(times=20, seconds=5))])
 async def search_posts(query: str, db: Session = Depends(get_db)):
     sql_query = """
         SELECT * 
@@ -71,11 +91,15 @@ async def search_posts(query: str, db: Session = Depends(get_db)):
     return posts
 
 
-@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK,dependencies=[Depends(RateLimiter(times=20,seconds=5))])
+@router.get(
+    "/{post_id}",
+    response_model=PostRead,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RateLimiter(times=20, seconds=5))],
+)
 async def get_post(cache: PostCache, post_id: int, db: Session = Depends(get_db)):
     cache_key = str(post_id)
     if cached_data := await cache.get(cache_key):
-        print(cache_key)
         return PostRead(**cached_data)
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
@@ -83,7 +107,17 @@ async def get_post(cache: PostCache, post_id: int, db: Session = Depends(get_db)
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id:{post_id} not found",
         )
-    await cache.set(cache_key, post.__dict__)
+    post_dict = {
+        "id": post.id,
+        "title": post.title,
+        "content": post.content,
+        "created_at": post.created_at,
+        "author_id": post.author_id,
+        "like_count": post.like_count,
+        "dislike_count": post.dislike_count,
+        "tags": [{"id": tag.id, "name": tag.name} for tag in post.tags]
+    }
+    await cache.set(cache_key, post_dict)
     return post
 
 
@@ -138,7 +172,7 @@ async def delete_post(
 # like/dislike/subscribe/unsubscribe a post
 @router.post("/{id}/{action}", status_code=status.HTTP_201_CREATED)
 async def like_dislike_post(
-    cache:PostCache,
+    cache: PostCache,
     id: int,
     action: Action,
     db: Session = Depends(get_db),

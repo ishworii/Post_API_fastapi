@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from app.schemas.tag import TagRead, TagCreate
 
 
 class PostBase(BaseModel):
@@ -7,7 +8,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    pass
+    tags: list[TagCreate]
 
 
 class PostRead(PostBase):
@@ -15,6 +16,7 @@ class PostRead(PostBase):
     like_count: int | None = 0
     dislike_count: int | None = 0
     author_id: int
+    tags: list[TagRead]
 
     class Config:
         orm_mode = True
