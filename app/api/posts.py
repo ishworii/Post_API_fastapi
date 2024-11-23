@@ -145,6 +145,17 @@ async def update_post(
     db_post.title = post_read.title
     db_post.content = post_read.content
     db_post.author_id = current_user.id
+    #check if the tags are already in db or not
+    updated_tags = []
+    for each_tag in post_read.tags:
+        tag = (
+                db.query(Tag).filter(Tag.name == each_tag.name.lower().strip()).first()
+            )
+        if not tag:
+            tag = Tag(name=each_tag.name.lower().strip())
+            db.add(tag)
+        updated_tags.append(tag)
+    db_post.tags = updated_tags
     db.commit()
     db.refresh(db_post)
     await cache.delete(str(post_id))
