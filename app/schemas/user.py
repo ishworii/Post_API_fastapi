@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+
 from app.models.user import UserRole
 
 
@@ -29,3 +30,7 @@ class UserUpdate(BaseModel):
 
     class Config:
         orm_mode = True
+
+class FollowResponse(BaseModel):
+    follower : UserBase
+    following : UserBase

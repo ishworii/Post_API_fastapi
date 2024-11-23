@@ -1,20 +1,18 @@
 import os
 from datetime import datetime
+from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from redis.asyncio import Redis
 from sqlalchemy.orm import Session
 
 from app.crud.user import get_user_by_username
 from app.db.session import SessionLocal
 from app.models.user import User, UserRole
-from fastapi import Request
-from redis.asyncio import Redis
-from typing import Annotated
-from fastapi import Depends
-
 from app.services.cache import CacheService
+
 
 async def get_redis(request: Request) -> Redis:
     return request.app.state.redis_client

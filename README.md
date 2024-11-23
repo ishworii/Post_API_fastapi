@@ -37,11 +37,11 @@ along the way about the whole experience.
 - [x] **Fix the jwt token validation bug**
 - **Add advanced rate limiting specific to user roles**
 - **Fix the mockup redis in testing**
-- **Add ability to follow other people**
+- [x] **Add ability to follow other people**
 - **Add GraphQL**
 - **Add background tasks**
 - **Add fuzzy match based searching**
-- **Add tags to the post**
+- [x] **Add tags to the post**
 - **Add logging**
 - [x] **Fix the search query bugs**
 - [x] **Evaluate poetry for better package management**

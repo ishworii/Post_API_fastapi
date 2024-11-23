@@ -1,6 +1,6 @@
 from enum import Enum as PyEnum
 
-from sqlalchemy import Column, Enum, Integer, String
+from sqlalchemy import Column, Enum, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -9,6 +9,14 @@ from app.db.base import Base
 class UserRole(PyEnum):
     normal = "normal"
     admin = "admin"
+    
+    
+user_follow_table = Table(
+    "user_follow",
+    Base.metadata,
+    Column("follower_id",Integer,ForeignKey("users.id"),primary_key=True),
+    Column("following_id",Integer,ForeignKey("users.id"),primary_key=True),
+)
 
 
 class User(Base):
@@ -30,4 +38,12 @@ class User(Base):
     )
     subscriptions = relationship(
         "Subscription", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    followers = relationship(
+        "User",
+        secondary=user_follow_table,
+        primaryjoin= id == user_follow_table.c.following_id,
+        secondaryjoin= id == user_follow_table.c.follower_id,
+        backref = "following"
     )

@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 from redis.asyncio import Redis
 
-from app.api import auth, comment, posts, users
+from app.api import auth, comment, follow, posts, users
 from app.db.base import Base
 from app.db.session import engine
 from app.models.comment import Comment
@@ -51,3 +51,4 @@ app.include_router(comment.router, tags=["Comment"])
 app.include_router(posts.router, prefix="/posts", tags=["Posts"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(auth.router, tags=["Auth"])
+app.include_router(follow.router,tags=["Follow"])
