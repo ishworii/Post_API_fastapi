@@ -25,6 +25,7 @@ def get_all_posts(
     author_id: int = Query(None, description="Filter by author id"),
     min_likes: int = Query(None, description="Filter by minimum number of likes"),
     title: str = Query(None, description="Filter by title"),
+    tags : str = Query(None,description="Filter by tags separated by comma"),
 ):
     query = db.query(Post)
     if author_id:
@@ -32,7 +33,10 @@ def get_all_posts(
     if min_likes:
         query = query.filter(Post.like_count >= min_likes)
     if title:
-        query = query.filter(Post.title.ilike(f"%{title}%"))
+        query = query.filter(Post.title.ilike(f"%{title.strip()}%"))
+    if tags:
+        all_tags = tags.split(",")
+        query = query.filter(Post.tags.any(Tag.name.in_(all_tags)))
     posts = query.all()
     return posts
 

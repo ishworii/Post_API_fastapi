@@ -43,6 +43,7 @@ along the way about the whole experience.
 - **Add fuzzy match based searching**
 - **Add tags to the post**
 - **Add logging**
+- [x] **Fix the search query bugs**
 - [x] **Evaluate poetry for better package management**
 - **Update readme to reflect poetry addition**
 
