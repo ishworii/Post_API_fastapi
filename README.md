@@ -207,7 +207,14 @@ Here's a brief overview of the REST API endpoints:
    - `POST /users/login` - Login a user
    - `GET /users/me` - Retrieve the current user's details
 
-4. **WebSockets**
+4. **Follow**
+
+   - `POST /{user_id}/follow` - Follow a user
+   - `POST /{user_id}/unfollow` - Unfollow a user
+   - `GET /{user_id}/followers` - List of followers
+   - `GET /{user_id}/following` - List of following
+
+5. **WebSockets**
    - `ws://127.0.0.1:8000/ws/notifications` - Real-time notifications for post subscriptions
 
 ## Future Features
