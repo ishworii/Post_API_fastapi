@@ -1,16 +1,26 @@
 # FastAPI Social Media API
 
-# History
+## History
 
-Initially this was supposed to be a simple blog api written with FastAPI but as I progressed through the project, I
-decided to make it full blown social media API with all the standard features that a social media app will have. I know,
-there are few more features to add before this becomes "Social Media API" but I am calling it now. I am more concerned about
-learning features and understanding FastAPI rather than making it production ready social media api. I might make few blogs
-along the way about the whole experience.
+Initially, this project started as a simple blog API written in FastAPI. However, as I progressed, I decided to expand it into a full-fledged social media API, incorporating the features you'd expect from a social media application. While not yet production-ready, the focus is on learning FastAPI and its ecosystem.
+
+I plan to document the development process in blogs and continue adding features to make it more robust.
+
+## Features
+
+- Role-based access control (normal/admin users)
+- Subscription-based notifications
+- WebSockets for real-time updates
+- Content moderation with automated tools
+- Redis for caching
+- Full-text search and filtering
+- Tags for posts
+- CI/CD pipeline with GitHub Actions
+- Dockerized setup for easy deployment
+
+## TODO
 
 ### Here's a list of todos, most completed few in the progress:
-
-### TODO
 
 - [x] **Add query params to filter query by author, title, search string, or something else**
 - [x] **Add role-based user (normal/admin)**
@@ -45,7 +55,7 @@ along the way about the whole experience.
 - **Add logging**
 - [x] **Fix the search query bugs**
 - [x] **Evaluate poetry for better package management**
-- **Update readme to reflect poetry addition**
+- [x] **Update readme to reflect poetry addition**
 
 ## Prerequisites
 
@@ -53,9 +63,9 @@ along the way about the whole experience.
 - **FastAPI**
 - **SQLAlchemy**
 - **Alembic**
-- **PostgreSQL** (or any SQL database)
-- **Docker**
+- **PostgreSQL**
 - **Redis**
+- **Docker**
 
 ## Installation
 
@@ -66,74 +76,153 @@ git clone https://github.com/ishworii/FastAPI_Social_Media_API.git
 cd FastAPI_Social_Media_API
 ```
 
-### 2. Set Up a Virtual Environment
+### 2. Set Up Poetry
+
+Ensure Poetry is installed. You can install it via:
 
 ```bash
-python -m venv env
-source env/bin/activate  # On Windows: venv\Scripts\activate
+pip install poetry
 ```
 
-### 3. Install Dependencies
+Install dependencies using Poetry:
 
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
-### 4. Set Up Environment Variables
+Activate the virtual environment:
 
-Create a `.env` file in the project root with the following contents:
-Also create `.env.docker` for docker and `.env.ci` for GitHub Actions, the contents will be similar for these files
-Just slight altercations.
+```bash
+poetry shell
+```
+
+### 3. Set Up Environment Variables
+
+Create a `.env` file in the project root with the following variables. You'll also need `.env.docker` and `.env.ci` for Docker and CI/CD configurations:
 
 ```
 SECRET_KEY=your_secret_key
 ALGORITHM=HS256
 SQLALCHEMY_DATABASE_URL=postgresql://<user>:<password>@<localhost>/<dbname>
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-REDIS_URL=redis://<localhost>:<port_number>/0
+REDIS_URL=redis://localhost:6379/0
 SQLALCHEMY_TEST_DATABASE_URL=postgresql://<user>:<password>@<localhost>/<test_dbname>
 ```
 
-Replace the variables with actual values
+Replace `<user>`, `<password>`, `<dbname>`, and `<test_dbname>` with your values.
 
-### 5. Run redis in a docker or locally
+## Running the App with Docker
 
-### 6. Run the Application
+To simplify setup, use Docker to run the application along with Redis and PostgreSQL.
 
-Start the FastAPI server to run in a development environment:
+1. Build the Docker image:
 
-```bash
-fastapi dev app/main.py
+   ```bash
+   docker-compose build
+   ```
+
+2. Start the containers:
+
+   ```bash
+   docker-compose up
+   ```
+
+The API will be available at `http://127.0.0.1:8000`. Redis will be running on `localhost:6379`.
+
+## Running the Application Locally
+
+If you prefer to run the app without Docker:
+
+1. Start Redis locally or in Docker:
+
+   ```bash
+   docker run -d --name redis -p 6379:6379 redis
+   ```
+
+2. Start PostgreSQL locally or in Docker.
+
+3. Run the application:
+
+   ```bash
+   poetry run uvicorn app.main:app --reload
+   ```
+
+   or
+
+   ```
+   fastapi run app/main.py
+   ```
+
+Access the API at `http://127.0.0.1:8000`.
+
+## Testing the Application
+
+Run tests using Pytest:
+
+1. Ensure the test database is created.
+2. Execute the tests:
+
+   ```bash
+   poetry run pytest
+   ```
+
+For tests using Redis, ensure Redis is running locally or in Docker.
+
+## WebSocket Routes
+
+WebSocket endpoints enable real-time updates for subscribed users:
+
+1. **Subscribe to notifications:**
+
+   - Endpoint: `ws://127.0.0.1:8000/ws/notifications`
+   - Description: Clients can connect to receive real-time updates for posts they are subscribed to.
+
+2. **Broadcast notifications:**
+   - Internal endpoint triggered by actions such as new comments or likes.
+
+## Endpoints
+
+Here's a brief overview of the REST API endpoints:
+
+1. **Posts**
+
+   - `GET /posts` - Retrieve all posts
+   - `POST /posts` - Create a new post
+   - `GET /posts/search?query={query}` - Full-text search for posts
+   - `GET /posts/{id}` - Retrieve a post by ID
+   - `PUT /posts/{id}` - Update a specific post
+   - `DELETE /posts/{id}` - Delete a specific post
+   - `POST /posts/{id}/{action}` - Like, dislike, subscribe, or unsubscribe from a post
+
+2. **Comments**
+
+   - `POST /posts/{id}/comment` - Add a comment under a post
+   - `GET /comments/{comment_id}` - Retrieve a comment
+   - `PUT /comments/{comment_id}` - Update a comment
+   - `DELETE /comments/{comment_id}` - Delete a comment
+
+3. **Users**
+
+   - `POST /users/register` - Register a user
+   - `POST /users/login` - Login a user
+   - `GET /users/me` - Retrieve the current user's details
+
+4. **WebSockets**
+   - `ws://127.0.0.1:8000/ws/notifications` - Real-time notifications for post subscriptions
+
+## Future Features
+
+- Email notifications
+- Performance optimizations
+- Advanced role-based access control
+- GraphQL support
+- Fuzzy matching in search
+- Background tasks for async processing
+- Logging
+- User analytics
+
+Feel free to suggest any updates or raise issues in the repository!
+
 ```
 
-The API will be available at `http://127.0.0.1:8000`.
-Check the documentation at `http://127.0.0.1:8000/docs` or `http://127.0.0.1:8000/redoc` , I prefer the later.
-
-### 7. To test the app
-
-Create the test db beforehand.
-
-```bash
-pytest
 ```
-
-# Endpoints
-
-Here's the brief overview of endpoints:
-
-1. GET /posts : get all the post
-2. POST /posts : Create a new post
-3. GET /posts/search?query={query} : Full text based search
-4. GET /posts/{id} : Get post with {id}
-5. PUT /posts/{id} : Update a specific post
-6. DELETE /posts/{id} : Delete a specific post
-7. POST /posts/{id}/{action} : Action can be like or dislike a post and suscribe or unsuscribe from a post
-8. POST /posts/{id}/comment : Add a new comment under a post
-9. GET /comments/{comment_id} : Get a comment
-10. PUT /comments/{comment_id} : Update a comment
-11. DELETE /comments/{comment_id} : Delete a comment
-12. POST /users/register : Register a user
-13. POST /users/login : Login
-14. GET /users/me : Get current user
-
-#### I completely forgot about the websockets and authentication, i will add it later.
